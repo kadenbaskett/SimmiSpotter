@@ -1,4 +1,4 @@
-import pricingData
+import pricing_data
 
-candleSticks = pricingData.getCandles('AMC')
-print(candleSticks)
+amc_ohlc = pricing_data.get_intraday_data('AMC', '5min')
+print(amc_ohlc)
