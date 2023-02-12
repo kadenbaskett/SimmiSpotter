@@ -38,4 +38,8 @@ def get_historical_data(symbol, start_date=None):
                             '8. split coefficient'], axis=1)
     if start_date:
         df = df[df.index >= start_date]
+
+     # add OHLC4 column
+    df['ohlc4'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
+
     return df
