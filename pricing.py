@@ -25,7 +25,7 @@ def get_intraday_data(symbol, interval):
     return df
 
 
-def get_historical_data(symbol, start_date=None):
+def get_historical_data(symbol, start_date=None, end_date=None):
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&apikey={api_key}&outputsize=full'
     raw_df = requests.get(url).json()
     df = pd.DataFrame(raw_df[f'Time Series (Daily)']).T
@@ -38,6 +38,9 @@ def get_historical_data(symbol, start_date=None):
                             '8. split coefficient'], axis=1)
     if start_date:
         df = df[df.index >= start_date]
+
+    if end_date:
+        df = df[df.index <= end_date]
 
      # add OHLC4 column
     df['ohlc4'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
