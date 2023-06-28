@@ -17,7 +17,7 @@ headers = {
 # interval = minute multiplier
 # afterTimestamp = millisecond timestamp to get data after
 # beforeTimestamp = millisecond timestamp to get data before
-def getIntradayCandles(ticker, interval, afterTimestamp, beforeTimestamp, adjusted = 'true', sort = 'asc', limit = 5000):
+def getMinuteCandles(ticker, interval, afterTimestamp, beforeTimestamp, adjusted = 'true', sort = 'asc', limit = 5000):
     url = uri + f'/v2/aggs/ticker/{ticker}/range/{interval}/minute/{afterTimestamp}/{beforeTimestamp}?adjusted={adjusted}&sort={sort}&limit={limit}'
     response = requests.get(url, headers=headers)
     
