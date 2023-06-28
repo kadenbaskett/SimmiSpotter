@@ -5,44 +5,24 @@ import requests
 import pandas as pd
 
 load_dotenv()
-api_key = os.getenv('ALPHA_VANTAGE_KEY')
 
+apiToken = os.getenv('POLYGON_KEY')
+uri = "https://api.polygon.io"
 
-def get_intraday_data(symbol, interval):
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval={interval}&apikey={api_key}'
-    raw_df = requests.get(url).json()
-    df = pd.DataFrame(raw_df[f'Time Series ({interval})']).T
-    df = df.rename(columns={'1. open': 'open', '2. high': 'high',
-                   '3. low': 'low', '4. close': 'close', '5. volume': 'volume'})
-    for i in df.columns:
-        df[i] = df[i].astype(float)
-    df.index = pd.to_datetime(df.index)
-    df = df.iloc[::-1]
+headers = {
+    "Authorization": f"Bearer {apiToken}"
+}
 
-    # add OHLC4 column
-    df['ohlc4'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
-
-    return df
-
-
-def get_historical_data(symbol, start_date=None, end_date=None):
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&apikey={api_key}&outputsize=full'
-    raw_df = requests.get(url).json()
-    df = pd.DataFrame(raw_df[f'Time Series (Daily)']).T
-    df = df.rename(columns={'1. open': 'open', '2. high': 'high', '3. low': 'low',
-                   '4. close': 'close', '5. adjusted close': 'adj close', '6. volume': 'volume'})
-    for i in df.columns:
-        df[i] = df[i].astype(float)
-    df.index = pd.to_datetime(df.index)
-    df = df.iloc[::-1].drop(['7. dividend amount',
-                            '8. split coefficient'], axis=1)
-    if start_date:
-        df = df[df.index >= start_date]
-
-    if end_date:
-        df = df[df.index <= end_date]
-
-     # add OHLC4 column
-    df['ohlc4'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
-
-    return df
+# ticker = stock cusip
+# interval = minute multiplier
+# afterTimestamp = millisecond timestamp to get data after
+# beforeTimestamp = millisecond timestamp to get data before
+def getIntradayCandles(ticker, interval, afterTimestamp, beforeTimestamp, adjusted = 'true', sort = 'asc', limit = 5000):
+    url = uri + f'/v2/aggs/ticker/{ticker}/range/{interval}/minute/{afterTimestamp}/{beforeTimestamp}?adjusted={adjusted}&sort={sort}&limit={limit}'
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        print("Request failed with status code:", response.status_code)
