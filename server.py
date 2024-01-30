@@ -12,8 +12,8 @@ def home():
 def healthCheck():
     return "API server is healthy!"
 
-#http://127.0.0.1:5000/pricing/getIntradayCandles?ticker=AMC&interval=60&afterTimestamp=1687749201000&beforeTimestamp=1687922001000
-@app.route('/pricing/getMinuteCandles', methods=['GET'])
+#http://127.0.0.1:5000/pricing/getMinuteCandles?ticker=AMC&interval=60&afterTimestamp=1687749201000&beforeTimestamp=1687922001000
+@app.route('/pricing/getCandles', methods=['GET'])
 def getIntradayCandles():
     ticker = request.args.get('ticker')
     interval = request.args.get('interval')
@@ -33,8 +33,8 @@ def getIntradayCandles():
     if beforeTimestamp is None:
         print("No beforeTimestamp provided.")
 
-    pricingData = pricing.getMinuteCandles(ticker, interval, afterTimestamp, beforeTimestamp)
-    return jsonify(pricingData["results"])
+    candles = pricing.getCandles(ticker, interval, afterTimestamp, beforeTimestamp)
+    return jsonify(candles)
 
 if __name__ == '__main__':
     app.run(debug=True)
