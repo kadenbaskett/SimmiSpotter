@@ -4,7 +4,8 @@ import requests
 import pandas as pd
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import pandas as pd
+import plotly.graph_objects as go
 
 load_dotenv()
 
@@ -46,12 +47,30 @@ def cleanCandles(candleData):
     df['t'] = pd.to_datetime(df['t'], unit='ms')
 
     # Plot OHLC4
-    plt.plot(df.index, df['ohlc4'], linestyle='-', color='#8F00FF', label='OHLC4')
+    fig = go.Figure()
 
-    plt.title('OHLC4 Data')
-    plt.xlabel('Timestamp')
-    plt.ylabel('OHLC4 Value')
-    plt.legend()
-    plt.show()
+    # Add OHLC4 trace
+    fig.add_trace(go.Scatter(x=df.index, y=df['ohlc4'],
+                             mode='lines',
+                             name='OHLC4',
+                             hovertemplate='%{y:.2f}<br>%{text}',
+                             text=df['t'].dt.strftime('%Y-%m-%d %H:%M:%S')))
+
+    # Update layout
+    fig.update_layout(title='OHLC4 Data',
+                      xaxis_title='Timestamp',
+                      yaxis_title='OHLC4 Value',
+                      hovermode='x')
+
+    # Show the plot
+    fig.show()
+    
+    # plt.plot(df.index, df['ohlc4'], linestyle='-', color='#8F00FF', label='OHLC4')
+
+    # plt.title('OHLC4 Data')
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('OHLC4 Value')
+    # plt.legend()
+    # plt.show()
 
     return candleData
