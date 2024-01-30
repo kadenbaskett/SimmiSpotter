@@ -2,9 +2,6 @@ import os
 from dotenv import load_dotenv
 import requests
 import pandas as pd
-import pandas as pd
-import matplotlib.pyplot as plt
-import pandas as pd
 import plotly.graph_objects as go
 
 load_dotenv()
@@ -40,13 +37,17 @@ def cleanCandles(candleData):
     for candle in candleData:
         candle.pop('vw', None) 
         candle.pop('n', None) 
-        ohlc4 = (candle["o"] + candle["h"] + candle["l"] + candle["c"]) /4 
+        ohlc4 = (candle["o"] + candle["h"] + candle["l"] + candle["c"]) / 4
         candle["ohlc4"] = ohlc4
 
     df = pd.DataFrame(candleData)
     df['t'] = pd.to_datetime(df['t'], unit='ms')
 
-    # Plot OHLC4
+     # Group by date and find the highest and lowest points
+    daily_highs = df.groupby([df['t'].dt.date])['ohlc4'].transform('max')
+    daily_lows = df.groupby([df['t'].dt.date])['ohlc4'].transform('min')
+
+    # Plot OHLC4, highest points, and lowest points
     fig = go.Figure()
 
     # Add OHLC4 trace
@@ -56,21 +57,30 @@ def cleanCandles(candleData):
                              hovertemplate='%{y:.2f}<br>%{text}',
                              text=df['t'].dt.strftime('%Y-%m-%d %H:%M:%S')))
 
+    # Add highest points trace
+    fig.add_trace(go.Scatter(x=df.index, y=daily_highs,
+                             mode='markers',
+                             marker=dict(color='red'),
+                             name='Highest Points',
+                             hovertemplate='%{y:.2f}<br>%{text}',
+                             text=df['t'].dt.strftime('%Y-%m-%d')))
+
+    # Add lowest points trace
+    fig.add_trace(go.Scatter(x=df.index, y=daily_lows,
+                             mode='markers',
+                             marker=dict(color='green'),
+                             name='Lowest Points',
+                             hovertemplate='%{y:.2f}<br>%{text}',
+                             text=df['t'].dt.strftime('%Y-%m-%d')))
+
     # Update layout
-    fig.update_layout(title='OHLC4 Data',
-                      xaxis_title='Timestamp',
+    fig.update_layout(title='OHLC4 Data with Highest and Lowest Points',
+                      xaxis_title='Index',
                       yaxis_title='OHLC4 Value',
                       hovermode='x')
 
     # Show the plot
     fig.show()
-    
-    # plt.plot(df.index, df['ohlc4'], linestyle='-', color='#8F00FF', label='OHLC4')
-
-    # plt.title('OHLC4 Data')
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('OHLC4 Value')
-    # plt.legend()
-    # plt.show()
 
     return candleData
+
