@@ -38,22 +38,3 @@ def getIntradayCandles():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-# ticker = 'AMC'
-# interval = 60
-
-# # Get the current datetime
-# current_datetime = datetime.now()
-
-# # Subtract two days using timedelta
-# two_days_ago = current_datetime - timedelta(days=2)
-
-# # Convert the datetime to milliseconds timestamp
-# twoDaysAgoTimestamp = int(two_days_ago.timestamp() * 1000)
-
-# currentTimestamp = int(current_datetime.timestamp() * 1000)
-
-
-# pricingData = pricing.getIntradayCandles(ticker, interval, twoDaysAgoTimestamp, currentTimestamp)
-# print(pricingData["results"])
-

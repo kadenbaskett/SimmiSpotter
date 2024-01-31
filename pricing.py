@@ -43,38 +43,56 @@ def cleanCandles(candleData):
 
     fig = go.Figure()
 
-    # Add OHLC4 trace
+    # # Add OHLC4 trace
     fig.add_trace(go.Scatter(x=df.index, y=df['ohlc4'],
                              mode='lines',
                              name='OHLC4',
                              hovertemplate='%{y:.2f}<br>%{text}',
                              text=df['t'].dt.strftime('%Y-%m-%d %H:%M:%S')))
 
-    # Add highest and lowest points traces
+    # # Add OHLC4 Daily highs trace
     daily_highs = day_grouped_data['ohlc4'].idxmax()
+    # fig.add_trace(go.Scatter(x=daily_highs, y=df.loc[daily_highs]['ohlc4'],
+    #                          mode='markers',
+    #                          marker=dict(color='red', size=8),
+    #                          name='Highest Points',
+    #                          hovertemplate='Highest: %{y:.2f}<br>%{text}',
+    #                          text=daily_highs))
+
+    # Add OHLC4 Daily lows trace
     daily_lows = day_grouped_data['ohlc4'].idxmin()
+    # fig.add_trace(go.Scatter(x=daily_lows, y=df.loc[daily_lows]['ohlc4'],
+    #                          mode='markers',
+    #                          marker=dict(color='green', size=8),
+    #                          name='Lowest Points',
+    #                          hovertemplate='Lowest: %{y:.2f}<br>%{text}',
+    #                          text=daily_lows))
 
-    fig.add_trace(go.Scatter(x=daily_highs, y=df.loc[daily_highs]['ohlc4'],
-                             mode='markers',
-                             marker=dict(color='red', size=8),  # Increase marker size
-                             name='Highest Points',
-                             hovertemplate='Highest: %{y:.2f}<br>%{text}',
-                             text=daily_highs))
+    # Add OHLC4 midpoints of daily highs and lows trace
+    midpoints = (df.loc[daily_highs]['ohlc4'].values + df.loc[daily_lows]['ohlc4'].values) / 2
+    midpoint_indices = (daily_highs + daily_lows) // 2
+    midpoints_trace = go.Scatter(x=midpoint_indices, y=midpoints,
+                                mode='markers',
+                                marker=dict(color='blue', size=8),
+                                name='Midpoints',
+                                hovertemplate='Midpoint: %{y:.2f}<br>%{text}',
+                                text=midpoint_indices)
+    fig.add_trace(midpoints_trace)
 
-    fig.add_trace(go.Scatter(x=daily_lows, y=df.loc[daily_lows]['ohlc4'],
-                             mode='markers',
-                             marker=dict(color='green', size=8),  # Increase marker size
-                             name='Lowest Points',
-                             hovertemplate='Lowest: %{y:.2f}<br>%{text}',
-                             text=daily_lows))
+    # Add curve between midpoint points
+    curve_trace = go.Scatter(x=midpoint_indices, y=midpoints,
+                            mode='lines',
+                            line=dict(color='purple'),
+                            name='Curve')
+    fig.add_trace(curve_trace)
 
     # Update layout
-    fig.update_layout(title='OHLC4 Data with Highest and Lowest Points',
+    fig.update_layout(
+                      title='OHLC4 Data with Highest, Lowest, and Midpoints',
                       xaxis_title='Index',
                       yaxis_title='OHLC4 Value',
                       hovermode='x')
 
-    # Show the plot
     fig.show()
 
     return candleData
