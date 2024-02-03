@@ -1,2 +1,11 @@
 # SimmiSpotter
-Uses channel detection and linear regression to detect critical levels within financial markets.
+Server for indicators to assist in navigating manipulated financial markets.
+
+# Setup
+pip install -r requirements.txt
+
+# Run
+python server.py
+
+Example requests are commented above endpoint declarations in server.py
+
