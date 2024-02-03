@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 import requests
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np
+from scipy.stats import linregress
 
 load_dotenv()
 
@@ -18,7 +21,7 @@ def getCandles(ticker, interval, afterTimestamp, beforeTimestamp, adjusted='true
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
-        candles = cleanCandles(response.json()["results"])
+        candles = cleanCandles(response.json()["results"], ticker)
         return candles
 
     elif response.status_code == 429:
@@ -28,7 +31,7 @@ def getCandles(ticker, interval, afterTimestamp, beforeTimestamp, adjusted='true
         print("Request failed with status code:", response.status_code)
         print("Error message:", response.reason)
 
-def cleanCandles(candleData):
+def cleanCandles(candleData, ticker):
     for candle in candleData:
         candle.pop('vw', None)
         candle.pop('n', None)
@@ -41,58 +44,111 @@ def cleanCandles(candleData):
 
     day_grouped_data = df.groupby('day')
 
-    fig = go.Figure()
+    # Create subplots
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
 
-    # # Add OHLC4 trace
+    # Add OHLC4 trace
     fig.add_trace(go.Scatter(x=df.index, y=df['ohlc4'],
                              mode='lines',
                              name='OHLC4',
                              hovertemplate='%{y:.2f}<br>%{text}',
-                             text=df['t'].dt.strftime('%Y-%m-%d %H:%M:%S')))
+                             text=df['t'].dt.strftime('%Y-%m-%d %H:%M:%S')), row=1, col=1)
 
-    # # Add OHLC4 Daily highs trace
+    # Add OHLC4 Daily highs trace
     daily_highs = day_grouped_data['ohlc4'].idxmax()
-    # fig.add_trace(go.Scatter(x=daily_highs, y=df.loc[daily_highs]['ohlc4'],
-    #                          mode='markers',
-    #                          marker=dict(color='red', size=8),
-    #                          name='Highest Points',
-    #                          hovertemplate='Highest: %{y:.2f}<br>%{text}',
-    #                          text=daily_highs))
 
     # Add OHLC4 Daily lows trace
     daily_lows = day_grouped_data['ohlc4'].idxmin()
-    # fig.add_trace(go.Scatter(x=daily_lows, y=df.loc[daily_lows]['ohlc4'],
-    #                          mode='markers',
-    #                          marker=dict(color='green', size=8),
-    #                          name='Lowest Points',
-    #                          hovertemplate='Lowest: %{y:.2f}<br>%{text}',
-    #                          text=daily_lows))
 
     # Add OHLC4 midpoints of daily highs and lows trace
     midpoints = (df.loc[daily_highs]['ohlc4'].values + df.loc[daily_lows]['ohlc4'].values) / 2
     midpoint_indices = (daily_highs + daily_lows) // 2
     midpoints_trace = go.Scatter(x=midpoint_indices, y=midpoints,
                                 mode='markers',
-                                marker=dict(color='blue', size=8),
+                                marker=dict(color='black', size=8),
                                 name='Midpoints',
                                 hovertemplate='Midpoint: %{y:.2f}<br>%{text}',
                                 text=midpoint_indices)
-    fig.add_trace(midpoints_trace)
+    fig.add_trace(midpoints_trace, row=1, col=1)
 
     # Add curve between midpoint points
     curve_trace = go.Scatter(x=midpoint_indices, y=midpoints,
                             mode='lines',
-                            line=dict(color='purple'),
+                            line=dict(color='black'),
                             name='Curve')
-    fig.add_trace(curve_trace)
+    fig.add_trace(curve_trace, row=1, col=1)
+
+    # Calculate second derivative of midpoints
+    second_derivative = np.gradient(np.gradient(midpoints))
+
+    # Define a threshold for aggressive change
+    threshold = 2  # You can adjust this value
+
+    # Identify points where the second derivative changes aggressively
+    change_points = np.where(np.abs(second_derivative) > threshold)[0]
+    change_points_trace = go.Scatter(x=midpoint_indices[change_points], y=midpoints[change_points],
+                                    mode='markers',
+                                    marker=dict(color='red', size=8),
+                                    name='Aggressive Changes',
+                                    hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
+                                    text=midpoint_indices[change_points])
+    fig.add_trace(change_points_trace, row=1, col=1)
+
+   # Identify continuous sections with 3 or more midpoints without aggressive change
+    sections = []
+    current_section = []
+    for idx, val in enumerate(midpoint_indices):
+        if idx not in change_points:
+            current_section.append(idx)  # Use idx instead of val
+        else:
+            if len(current_section) >= 3:
+                sections.append(current_section)
+            current_section = []
+
+    # Perform linear regression for each identified section
+    for section in sections:
+        valid_indices = [idx for idx in section if idx < len(midpoint_indices)]
+        if len(valid_indices) >= 3:
+            first_midpoint_index = valid_indices[0]
+            last_midpoint_index = valid_indices[-1]  # Use the last midpoint index in the section
+            x_values = midpoint_indices[first_midpoint_index:last_midpoint_index + 1]
+            y_values = midpoints[first_midpoint_index:last_midpoint_index + 1]
+            slope, intercept, r_value, p_value, std_err = linregress(x_values, y_values)
+            regression_line = slope * x_values + intercept
+            regression_trace = go.Scatter(x=x_values, y=regression_line,
+                                        mode='lines',
+                                        line=dict(color='orange'),
+                                        name='Linear Regression')
+            fig.add_trace(regression_trace, row=1, col=1)
+
+    # Add second derivative subplot
+    second_derivative_trace = go.Scatter(x=midpoint_indices, y=second_derivative,
+                                        mode='lines',
+                                        line=dict(color='black'),
+                                        name='Second Derivative')
+    fig.add_trace(second_derivative_trace, row=2, col=1)
+
+    # Add positive threshold line on the second derivative subplot
+    positive_threshold_line_trace = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, threshold),
+                                            mode='lines',
+                                            line=dict(color='red', dash='dash'),
+                                            name='Positive Threshold')
+    fig.add_trace(positive_threshold_line_trace, row=2, col=1)
+
+    # Add negative threshold line on the second derivative subplot
+    negative_threshold_line_trace = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, -threshold),
+                                            mode='lines',
+                                            line=dict(color='red', dash='dash'),
+                                            name='Negative Threshold')
+    fig.add_trace(negative_threshold_line_trace, row=2, col=1)
 
     # Update layout
     fig.update_layout(
-                      title='OHLC4 Data with Highest, Lowest, and Midpoints',
+                      title=f'{ticker} OHLC4 with Midpoints, Curve, Aggressive Changes, and Linear Regression',
                       xaxis_title='Index',
-                      yaxis_title='OHLC4 Value',
                       hovermode='x')
 
     fig.show()
 
     return candleData
+
