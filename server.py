@@ -33,7 +33,7 @@ def getIntradayCandles():
     if beforeTimestamp is None:
         print("No beforeTimestamp provided.")
 
-    candles = pricing.getCandles(ticker, interval, afterTimestamp, beforeTimestamp)
+    candles = pricing.getCandles(ticker.upper(), interval, afterTimestamp, beforeTimestamp)
     return jsonify(candles)
 
 if __name__ == '__main__':

@@ -80,25 +80,47 @@ def cleanCandles(candleData, ticker):
 
     # Calculate second derivative of midpoints
     second_derivative = np.gradient(np.gradient(midpoints))
+        
+    # Calculate 1, 2, and 3 standard deviations levels
+    std_dev = np.std(second_derivative)
+    std_dev_1 = std_dev
+    std_dev_2 = 2 * std_dev
+    std_dev_3 = 3 * std_dev
 
-    # Define a threshold for aggressive change
-    threshold = 2  # You can adjust this value
 
     # Identify points where the second derivative changes aggressively
-    change_points = np.where(np.abs(second_derivative) > threshold)[0]
-    change_points_trace = go.Scatter(x=midpoint_indices[change_points], y=midpoints[change_points],
+    std_dev_1_change_points = np.where(np.abs(second_derivative) > std_dev)[0]
+    std_dev_1_change_points_trace = go.Scatter(x=midpoint_indices[std_dev_1_change_points], y=midpoints[std_dev_1_change_points],
                                     mode='markers',
-                                    marker=dict(color='red', size=8),
+                                    marker=dict(color='green', size=8),
                                     name='Aggressive Changes',
                                     hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
-                                    text=midpoint_indices[change_points])
-    fig.add_trace(change_points_trace, row=1, col=1)
+                                    text=midpoint_indices[std_dev_1_change_points])
+    fig.add_trace(std_dev_1_change_points_trace, row=1, col=1)
+
+    std_dev_2_change_points = np.where(np.abs(second_derivative) > std_dev_2)[0]
+    std_dev_2_change_points_trace = go.Scatter(x=midpoint_indices[std_dev_2_change_points], y=midpoints[std_dev_2_change_points],
+                                    mode='markers',
+                                    marker=dict(color='blue', size=8),
+                                    name='Aggressive Changes',
+                                    hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
+                                    text=midpoint_indices[std_dev_2_change_points])
+    fig.add_trace(std_dev_2_change_points_trace, row=1, col=1)
+
+    std_dev_3_change_points = np.where(np.abs(second_derivative) > std_dev_3)[0]
+    std_dev_3_change_points_trace = go.Scatter(x=midpoint_indices[std_dev_3_change_points], y=midpoints[std_dev_3_change_points],
+                                    mode='markers',
+                                    marker=dict(color='purple', size=8),
+                                    name='Aggressive Changes',
+                                    hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
+                                    text=midpoint_indices[std_dev_3_change_points])
+    fig.add_trace(std_dev_3_change_points_trace, row=1, col=1)
 
    # Identify continuous sections with 3 or more midpoints without aggressive change
     sections = []
     current_section = []
     for idx, val in enumerate(midpoint_indices):
-        if idx not in change_points:
+        if idx not in std_dev_1_change_points:
             current_section.append(idx)  # Use idx instead of val
         else:
             if len(current_section) >= 3:
@@ -108,7 +130,7 @@ def cleanCandles(candleData, ticker):
     # Perform linear regression for each identified section
     for section in sections:
         valid_indices = [idx for idx in section if idx < len(midpoint_indices)]
-        if len(valid_indices) >= 3:
+        if len(valid_indices) >= 4:
             first_midpoint_index = valid_indices[0]
             last_midpoint_index = valid_indices[-1]  # Use the last midpoint index in the section
             x_values = midpoint_indices[first_midpoint_index:last_midpoint_index + 1]
@@ -117,7 +139,7 @@ def cleanCandles(candleData, ticker):
             regression_line = slope * x_values + intercept
             regression_trace = go.Scatter(x=x_values, y=regression_line,
                                         mode='lines',
-                                        line=dict(color='orange'),
+                                        line=dict(color='green', width = 4),
                                         name='Linear Regression')
             fig.add_trace(regression_trace, row=1, col=1)
 
@@ -128,27 +150,45 @@ def cleanCandles(candleData, ticker):
                                         name='Second Derivative')
     fig.add_trace(second_derivative_trace, row=2, col=1)
 
-    # Add positive threshold line on the second derivative subplot
-    positive_threshold_line_trace = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, threshold),
-                                            mode='lines',
-                                            line=dict(color='red', dash='dash'),
-                                            name='Positive Threshold')
-    fig.add_trace(positive_threshold_line_trace, row=2, col=1)
+    # Add 1, 2, and 3 standard deviations levels to second derivaitc plot
+    std_dev_1_trace_positive = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, std_dev_1),
+                               mode='lines',
+                               line=dict(color='green', dash='dash'),
+                               name='1 Std Dev')
+    std_dev_1_trace_negative = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, -std_dev_1),
+                               mode='lines',
+                               line=dict(color='green', dash='dash'),
+                               name='1 Std Dev')
+    std_dev_2_trace_positive = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, std_dev_2),
+                               mode='lines',
+                               line=dict(color='blue', dash='dash'), 
+                               name='2 Std Dev')
+    std_dev_2_trace_negative = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, -std_dev_2),
+                               mode='lines',
+                               line=dict(color='blue', dash='dash'),
+                               name='2 Std Dev')
+    std_dev_3_trace_positive = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, std_dev_3),
+                               mode='lines',
+                               line=dict(color='purple', dash='dash'),  
+                               name='3 Std Dev')
+    std_dev_3_trace_negative = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, -std_dev_3),
+                            mode='lines',
+                            line=dict(color='purple', dash='dash'),  
+                            name='3 Std Dev')
 
-    # Add negative threshold line on the second derivative subplot
-    negative_threshold_line_trace = go.Scatter(x=midpoint_indices, y=np.full_like(midpoints, -threshold),
-                                            mode='lines',
-                                            line=dict(color='red', dash='dash'),
-                                            name='Negative Threshold')
-    fig.add_trace(negative_threshold_line_trace, row=2, col=1)
+    fig.add_trace(std_dev_1_trace_positive, row=2, col=1)
+    fig.add_trace(std_dev_1_trace_negative, row=2, col=1)
+    fig.add_trace(std_dev_2_trace_positive, row=2, col=1)
+    fig.add_trace(std_dev_2_trace_negative, row=2, col=1)
+    fig.add_trace(std_dev_3_trace_positive, row=2, col=1)
+    fig.add_trace(std_dev_3_trace_negative, row=2, col=1)
 
     # Update layout
     fig.update_layout(
-                      title=f'{ticker} OHLC4 with Midpoints, Curve, Aggressive Changes, and Linear Regression',
+                      title=ticker,
                       xaxis_title='Index',
                       hovermode='x')
 
     fig.show()
 
     return candleData
-
