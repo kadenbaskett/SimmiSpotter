@@ -104,7 +104,7 @@ def cleanCandles(candleData, ticker):
         x=midpoint_indices.iloc[std_dev_1_change_points].values,
         y=midpoints.iloc[std_dev_1_change_points].values,
         mode='markers',
-        marker=dict(color='blue', size=8),
+        marker=dict(color='green', size=8),
         name='Aggressive Changes',
         hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
         text=midpoint_indices.iloc[std_dev_1_change_points].values

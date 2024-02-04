@@ -8,7 +8,7 @@ app = Flask(__name__)
 def home():
     return "Welcome to SimmiSpotter API!"
 
-@app.route('/healthCheck')
+@app.route('/health')
 def healthCheck():
     return "Server is healthy!"
 
@@ -37,4 +37,4 @@ def getIntradayCandles():
     return jsonify(candles)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
