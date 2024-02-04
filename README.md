@@ -7,8 +7,6 @@ pip install -r requirements.txt
 # Run
 python server.py
 
-Example requests are commented above endpoint declarations in server.py
-
 # Docker
 docker build -t your-image-name .
 
