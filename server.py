@@ -10,9 +10,9 @@ def home():
 
 @app.route('/healthCheck')
 def healthCheck():
-    return "API server is healthy!"
+    return "Server is healthy!"
 
-#http://127.0.0.1:5000/pricing/getMinuteCandles?ticker=AMC&interval=60&afterTimestamp=1687749201000&beforeTimestamp=1687922001000
+#http://127.0.0.1:5000/pricing/getCandles?ticker=pypl&interval=60&afterTimestamp=2023-11-11&beforeTimestamp=2024-02-02
 @app.route('/pricing/getCandles', methods=['GET'])
 def getIntradayCandles():
     ticker = request.args.get('ticker')

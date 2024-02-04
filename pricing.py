@@ -63,19 +63,30 @@ def cleanCandles(candleData, ticker):
     # Add OHLC4 midpoints of daily highs and lows trace
     midpoints = (df.loc[daily_highs]['ohlc4'].values + df.loc[daily_lows]['ohlc4'].values) / 2
     midpoint_indices = (daily_highs + daily_lows) // 2
-    midpoints_trace = go.Scatter(x=midpoint_indices, y=midpoints,
-                                mode='markers',
-                                marker=dict(color='black', size=8),
-                                name='Midpoints',
-                                hovertemplate='Midpoint: %{y:.2f}<br>%{text}',
-                                text=midpoint_indices)
-    fig.add_trace(midpoints_trace, row=1, col=1)
 
+    # Convert to pandas series
+    midpoint_indices = pd.Series(midpoint_indices)
+    midpoints = pd.Series(midpoints)
+
+    midpoints_trace = go.Scatter(
+        x=midpoint_indices.iloc[:].values,
+        y=midpoints.iloc[:].values,
+        mode='markers',
+        marker=dict(color='black', size=8),
+        name='Midpoints',
+        hovertemplate='Midpoint: %{y:.2f}<br>%{text}',
+        text=midpoint_indices.iloc[:].values    
+    )
+    fig.add_trace(midpoints_trace, row=1, col=1)
+    
     # Add curve between midpoint points
-    curve_trace = go.Scatter(x=midpoint_indices, y=midpoints,
-                            mode='lines',
-                            line=dict(color='black'),
-                            name='Curve')
+    curve_trace = go.Scatter(
+        x=midpoint_indices.iloc[:].values,
+        y=midpoints.iloc[:].values,
+        mode='lines',
+        line=dict(color='black'),
+        name='Curve'
+    )
     fig.add_trace(curve_trace, row=1, col=1)
 
     # Calculate second derivative of midpoints
@@ -87,39 +98,47 @@ def cleanCandles(candleData, ticker):
     std_dev_2 = 2 * std_dev
     std_dev_3 = 3 * std_dev
 
-
     # Identify points where the second derivative changes aggressively
     std_dev_1_change_points = np.where(np.abs(second_derivative) > std_dev)[0]
-    std_dev_1_change_points_trace = go.Scatter(x=midpoint_indices[std_dev_1_change_points], y=midpoints[std_dev_1_change_points],
-                                    mode='markers',
-                                    marker=dict(color='green', size=8),
-                                    name='Aggressive Changes',
-                                    hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
-                                    text=midpoint_indices[std_dev_1_change_points])
+    std_dev_1_change_points_trace = go.Scatter(
+        x=midpoint_indices.iloc[std_dev_1_change_points].values,
+        y=midpoints.iloc[std_dev_1_change_points].values,
+        mode='markers',
+        marker=dict(color='blue', size=8),
+        name='Aggressive Changes',
+        hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
+        text=midpoint_indices.iloc[std_dev_1_change_points].values
+    )
     fig.add_trace(std_dev_1_change_points_trace, row=1, col=1)
 
     std_dev_2_change_points = np.where(np.abs(second_derivative) > std_dev_2)[0]
-    std_dev_2_change_points_trace = go.Scatter(x=midpoint_indices[std_dev_2_change_points], y=midpoints[std_dev_2_change_points],
-                                    mode='markers',
-                                    marker=dict(color='blue', size=8),
-                                    name='Aggressive Changes',
-                                    hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
-                                    text=midpoint_indices[std_dev_2_change_points])
+    std_dev_2_change_points_trace = go.Scatter(
+        x=midpoint_indices.iloc[std_dev_2_change_points].values,
+        y=midpoints.iloc[std_dev_2_change_points].values,
+        mode='markers',
+        marker=dict(color='blue', size=8),
+        name='Aggressive Changes',
+        hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
+        text=midpoint_indices.iloc[std_dev_2_change_points].values
+    )
     fig.add_trace(std_dev_2_change_points_trace, row=1, col=1)
 
     std_dev_3_change_points = np.where(np.abs(second_derivative) > std_dev_3)[0]
-    std_dev_3_change_points_trace = go.Scatter(x=midpoint_indices[std_dev_3_change_points], y=midpoints[std_dev_3_change_points],
-                                    mode='markers',
-                                    marker=dict(color='purple', size=8),
-                                    name='Aggressive Changes',
-                                    hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
-                                    text=midpoint_indices[std_dev_3_change_points])
+    std_dev_3_change_points_trace = go.Scatter(
+        x=midpoint_indices.iloc[std_dev_3_change_points].values,
+        y=midpoints.iloc[std_dev_3_change_points].values,
+        mode='markers',
+        marker=dict(color='purple', size=8),
+        name='Aggressive Changes',
+        hovertemplate='Aggressive Change: %{y:.2f}<br>%{text}',
+        text=midpoint_indices.iloc[std_dev_3_change_points].values
+    )
     fig.add_trace(std_dev_3_change_points_trace, row=1, col=1)
 
-   # Identify continuous sections with 3 or more midpoints without aggressive change
+    # Identify continuous sections with 3 or more midpoints without aggressive change
     sections = []
     current_section = []
-    for idx, val in enumerate(midpoint_indices):
+    for idx in range(len(midpoint_indices)):
         if idx not in std_dev_1_change_points:
             current_section.append(idx)  # Use idx instead of val
         else:
@@ -133,13 +152,13 @@ def cleanCandles(candleData, ticker):
         if len(valid_indices) >= 4:
             first_midpoint_index = valid_indices[0]
             last_midpoint_index = valid_indices[-1]  # Use the last midpoint index in the section
-            x_values = midpoint_indices[first_midpoint_index:last_midpoint_index + 1]
-            y_values = midpoints[first_midpoint_index:last_midpoint_index + 1]
+            x_values = midpoint_indices.iloc[range(first_midpoint_index, last_midpoint_index + 1)].values
+            y_values = midpoints.iloc[range(first_midpoint_index, last_midpoint_index + 1)].values
             slope, intercept, r_value, p_value, std_err = linregress(x_values, y_values)
             regression_line = slope * x_values + intercept
             regression_trace = go.Scatter(x=x_values, y=regression_line,
                                         mode='lines',
-                                        line=dict(color='green', width = 4),
+                                        line=dict(color='green', width=4),
                                         name='Linear Regression')
             fig.add_trace(regression_trace, row=1, col=1)
 
