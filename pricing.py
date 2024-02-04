@@ -46,7 +46,7 @@ def cleanCandles(candleData, ticker):
     day_grouped_data = df.groupby('day')
 
     # Create subplots
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, row_heights=[0.75, 0.25])
 
     # Add OHLC4 trace
     fig.add_trace(go.Scatter(x=df.index, y=df['ohlc4'],
