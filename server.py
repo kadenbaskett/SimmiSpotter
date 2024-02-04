@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
 import pricing
 from flask import Flask, abort, jsonify, request
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def home():
-    return "Welcome to SimmiSpotter API!"
+    return "Welcome to SimmiSpotter Server!"
 
 @app.route('/health')
 def healthCheck():
@@ -20,7 +20,6 @@ def getIntradayCandles():
     afterTimestamp = request.args.get('afterTimestamp')
     beforeTimestamp = request.args.get('beforeTimestamp')
 
-
     if ticker is None:
         abort(400, "No ticker provided")
 
@@ -31,10 +30,16 @@ def getIntradayCandles():
         abort(400, "No afterTimestamp provided")
 
     if beforeTimestamp is None:
-        print("No beforeTimestamp provided.")
+        abort(400, "No afterTimestamp provided")
 
-    candles = pricing.getCandles(ticker.upper(), interval, afterTimestamp, beforeTimestamp)
-    return jsonify(candles)
+    try:
+        candles = pricing.getCandles(ticker.upper(), interval, afterTimestamp, beforeTimestamp)
+        return jsonify(candles)
+    except pricing.RateLimitError as rate_limit_err:
+        return jsonify({"error": str(rate_limit_err)}), 429 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

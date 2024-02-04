@@ -16,6 +16,9 @@ headers = {
     "Authorization": f"Bearer {apiToken}"
 }
 
+class RateLimitError(Exception):
+    pass
+
 def getCandles(ticker, interval, afterTimestamp, beforeTimestamp, adjusted='true', sort='asc', limit=50000):
     url = uri + f'/v2/aggs/ticker/{ticker}/range/{interval}/minute/{afterTimestamp}/{beforeTimestamp}?adjusted={adjusted}&sort={sort}&limit={limit}'
     response = requests.get(url, headers=headers)
@@ -25,11 +28,9 @@ def getCandles(ticker, interval, afterTimestamp, beforeTimestamp, adjusted='true
         return candles
 
     elif response.status_code == 429:
-        print('failed because of rate limiting!!!!!! ):')
-
+        raise RateLimitError(f"Polygon rate limit exceeded. Unable to fetch data.")
     else:
-        print("Request failed with status code:", response.status_code)
-        print("Error message:", response.reason)
+        raise Exception('Error fetching Polygon data')
 
 def cleanCandles(candleData, ticker):
     for candle in candleData:
