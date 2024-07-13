@@ -20,36 +20,36 @@ def trigger(data, gravity):
         
         # Update '1' trigger every minute
         if i == 0 or math.isnan(triggers.loc[i - 1, '1']):
-            triggers.loc[i, '1'] = curr_price  # Initialize to current price if NaN or first row
+            triggers.loc[i, '1'] = curr_price  # Initialize to current price if NaN or first trigger value
         else:
             triggers.loc[i, '1'] = apply_gravity(triggers.loc[i - 1, '1'], curr_price, gravity)
 
         # Update '5' trigger every 5 minutes
         if data.loc[i, 'time'].minute % 5 == 0:
             if i == 0 or math.isnan(triggers.loc[i - 1, '5']):
-                triggers.loc[i, '5'] = curr_price  # Initialize to current price if NaN or first row
+                triggers.loc[i, '5'] = curr_price  # Initialize to current price if NaN or first trigger value
             else:
                 triggers.loc[i, '5'] = apply_gravity(triggers.loc[i - 1, '5'], curr_price, gravity)
         else:
-            triggers.loc[i, '5'] = triggers.loc[i - 1, '5'] if i > 0 else pd.NA  # Keep previous value if not updating
+            triggers.loc[i, '5'] = triggers.loc[i - 1, '5'] if i > 0 else pd.NA
 
         # Update 'H' trigger every hour
         if data.loc[i, 'time'].hour != (data.loc[i - 1, 'time'].hour if i > 0 else None):
             if i == 0 or math.isnan(triggers.loc[i - 1, 'H']):
-                triggers.loc[i, 'H'] = curr_price  # Initialize to current price if NaN or first row
+                triggers.loc[i, 'H'] = curr_price  # Initialize to current price if NaN or first trigger value
             else:
                 triggers.loc[i, 'H'] = apply_gravity(triggers.loc[i - 1, 'H'], curr_price, gravity)
         else:
-            triggers.loc[i, 'H'] = triggers.loc[i - 1, 'H'] if i > 0 else pd.NA  # Keep previous value if not updating
+            triggers.loc[i, 'H'] = triggers.loc[i - 1, 'H'] if i > 0 else pd.NA
 
         # Update 'D' trigger every day
         if data.loc[i, 'time'].date() != (data.loc[i - 1, 'time'].date() if i > 0 else None):
             if i == 0 or math.isnan(triggers.loc[i - 1, 'D']):
-                triggers.loc[i, 'D'] = curr_price  # Initialize to current price if NaN or first row
+                triggers.loc[i, 'D'] = curr_price  # Initialize to current price if NaN or first trigger value
             else:
                 triggers.loc[i, 'D'] = apply_gravity(triggers.loc[i - 1, 'D'], curr_price, gravity)
         else:
-            triggers.loc[i, 'D'] = triggers.loc[i - 1, 'D'] if i > 0 else pd.NA  # Keep previous value if not updating
+            triggers.loc[i, 'D'] = triggers.loc[i - 1, 'D'] if i > 0 else pd.NA
         
     return triggers
 
