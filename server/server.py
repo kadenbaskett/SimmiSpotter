@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Welcome to SimmiSpotter Server!"
+    return "Welcome to SimiSpotter Server!"
 
 @app.route('/health')
 def healthCheck():

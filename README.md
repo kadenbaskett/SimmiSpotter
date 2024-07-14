@@ -1,4 +1,4 @@
-# SimmiSpotter
+# Simi Spotter
 
 The engine of a trading bot designed to automate trading strategies and send out notifications for trading actions. The engine leverages various technologies and APIs to provide real-time trading data, visualize strategies' performances, and execute trades.
 
@@ -19,6 +19,6 @@ python server.py
 
 # Docker
 
-docker build -t simmi-spotter .
+docker build -t simi-spotter .
 
-docker run -p 5000:5000 simmi-spotter
+docker run -p 5000:5000 simi-spotter

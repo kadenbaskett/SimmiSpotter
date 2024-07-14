@@ -85,7 +85,7 @@ if __name__ == '__main__':
     triggers = trigger(price_data, 7.7)
 
     chart = Chart(title=ticker, toolbox=True)
-    chart.watermark('SimmiSpotter', font_size=32, color='rgba(180, 180, 240, 0.2)')
+    chart.watermark('SimiSpotter', font_size=32, color='rgba(180, 180, 240, 0.2)')
     # chart.legend(visible=True, font_size=14)
     chart.set(price_data)
     chart.candle_style(up_color='rgba(240, 240, 240, 0.2)',
