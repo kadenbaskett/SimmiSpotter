@@ -72,13 +72,6 @@ def find_midpoints(triggers, inflection_points, column_name):
         midpoints.append((midpoint_time, midpoint_value))
     return midpoints
 
-def generate_random_histogram(price_data):
-    # Assuming you want to generate some random volume or frequency data
-    # Let's create a random histogram data
-    random_data = np.random.randint(10, 100, size=len(price_data))  # Adjust the range and size as needed
-
-    return random_data
-
 if __name__ == '__main__':
     # end_date = pd.Timestamp.now('UTC').normalize()
     # end_date_unix_ms = int(end_date.timestamp() * 1000)
@@ -94,7 +87,7 @@ if __name__ == '__main__':
     chart = Chart(title=ticker, toolbox=True)
     chart.watermark('SimmiSpotter', font_size=32, color='rgba(180, 180, 240, 0.2)')
     # chart.legend(visible=True, font_size=14)
-    chart.set(price_data) # candlesticks
+    chart.set(price_data)
     chart.candle_style(up_color='rgba(240, 240, 240, 0.2)',
         down_color='rgba(240, 240, 240, 0.2)',
         border_up_color='rgba(240, 240, 240, 0.2)',
